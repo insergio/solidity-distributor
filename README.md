@@ -1,6 +1,6 @@
-# Basic Sample Hardhat Project
+# Distributor solidity project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This project shows a contract that allows people to contribute at a fund and then redistribute the balance evenly. The owner can allow users to start withdrawing and the contributors can retire their initial funds anytime assuming a 10% penalty.
 
 Try running some of the following tasks:
 
