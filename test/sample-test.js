@@ -39,6 +39,11 @@ describe("Distributor", function () {
       expect(await distributor.owner()).to.be.equal(await addr1.getAddress());
     });
 
+    it("Zero address transfer", async function () {
+      await expect(distributor.connect(owner).transferOwnership('0x0000000000000000000000000000000000000000')).to.be.revertedWith(
+        'ADDRESS_CANT_BE_ZERO'
+      );
+    });
   })
 
   describe("Contributions", () => {
@@ -107,6 +112,7 @@ describe("Distributor", function () {
         const element = contributors[i];
         accBalance = await distributor.contributions(element.getAddress())
         expect(accBalance).to.be.equal('0');
+        expect(await distributor.locked()).equals(true)
       }
     });
 

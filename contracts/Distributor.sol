@@ -26,23 +26,24 @@ contract Distributor {
         _;
     }
     
-    function changeMaxContribution (uint amount) public onlyOwner{
+    function changeMaxContribution (uint amount) external onlyOwner{
         maxContribution = amount;
     }
     
-    function changeMinContribution (uint amount) public onlyOwner{
+    function changeMinContribution (uint amount) external onlyOwner{
         minContribution = amount;
     }
     
-    function transferOwnership(address newOwner) public onlyOwner{
+    function transferOwnership(address newOwner) external onlyOwner{
+        require(address(newOwner) != address(0), 'ADDRESS_CANT_BE_ZERO');   
         owner = newOwner;
     }
     
-    function unlockWithdrawals() public onlyOwner{
+    function unlockWithdrawals() external onlyOwner{
         locked = false;
     }
     
-    function contribute() public payable{
+    function contribute() external payable{
         require(msg.value >= minContribution && msg.value <= maxContribution, 'CONTRIBUTION_TOO_LOW');
         require(contributions[msg.sender]+msg.value<maxContribution, 'CONTRIBUTION_TOO_HIGH');
         if(contributions[msg.sender] == 0 ){
@@ -51,27 +52,26 @@ contract Distributor {
         contributions[msg.sender]+=msg.value;
     }
     
-    function retire() public {
+    function retire() external {
         require(contributions[msg.sender]!=0, 'NO_AVAILABLE_FUNDS');
-        (bool success, ) = msg.sender.call{value: (contributions[msg.sender]*9/10)}("");
+        uint currentContribution = contributions[msg.sender];
         contributions[msg.sender]=0;
-        require(success, 'COULD NOT RETIRE');
         contributorsAmount--;
+        (bool success, ) = msg.sender.call{value: (currentContribution*9/10)}("");
+        require(success, 'COULD NOT RETIRE');
     }
     
-    function withdraw() public{
+    function withdraw() external{
         require(locked == false, 'WITHDRAWALS_ARE_LOCKED');
         if(contributions[msg.sender]!=0){
-            (bool success, ) = msg.sender.call{value: address(this).balance/contributorsAmount}("");
-            require(success, 'COULD_NOT_WITHDRAW');
             contributions[msg.sender]=0;
+            uint currentContributors = contributorsAmount;
             contributorsAmount--;
             if(contributorsAmount==0){
                 locked = true;
             }
+            (bool success, ) = msg.sender.call{value: address(this).balance/currentContributors}("");
+            require(success, 'COULD_NOT_WITHDRAW');   
         }
-
     }
-
-    
 }
