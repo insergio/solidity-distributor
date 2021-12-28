@@ -14,7 +14,9 @@ contract Distributor {
     
     mapping(address=>uint) public contributions ;
     uint public contributorsAmount;
-    
+
+    event userChange(address indexed _account, uint256 amount);
+    event contractChange();
     
     constructor(){
         owner = msg.sender;
@@ -28,19 +30,23 @@ contract Distributor {
     
     function changeMaxContribution (uint amount) external onlyOwner{
         maxContribution = amount;
+        emit contractChange();
     }
     
     function changeMinContribution (uint amount) external onlyOwner{
         minContribution = amount;
+        emit contractChange();
     }
     
     function transferOwnership(address newOwner) external onlyOwner{
         require(address(newOwner) != address(0), 'ADDRESS_CANT_BE_ZERO');   
         owner = newOwner;
+        emit contractChange();
     }
     
     function unlockWithdrawals() external onlyOwner{
         locked = false;
+        emit contractChange();
     }
     
     function contribute() external payable{
@@ -50,6 +56,7 @@ contract Distributor {
             contributorsAmount++;
         }
         contributions[msg.sender]+=msg.value;
+        emit userChange(msg.sender, contributions[msg.sender]);
     }
     
     function retire() external {
@@ -58,6 +65,7 @@ contract Distributor {
         contributions[msg.sender]=0;
         contributorsAmount--;
         (bool success, ) = msg.sender.call{value: (currentContribution*9/10)}("");
+        emit userChange(msg.sender, contributions[msg.sender]);
         require(success, 'COULD NOT RETIRE');
     }
     
@@ -71,6 +79,7 @@ contract Distributor {
                 locked = true;
             }
             (bool success, ) = msg.sender.call{value: address(this).balance/currentContributors}("");
+            emit userChange(msg.sender, contributions[msg.sender]);
             require(success, 'COULD_NOT_WITHDRAW');   
         }
     }
